@@ -1520,6 +1520,10 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 	xhci->event_ring = NULL;
 	xhci_dbg(xhci, "Freed event ring\n");
 
+<<<<<<< HEAD
+=======
+	xhci->cmd_ring_reserved_trbs = 0;
+>>>>>>> c3406d1... Linux 3.0.36 update
 	if (xhci->cmd_ring)
 		xhci_ring_free(xhci, xhci->cmd_ring);
 	xhci->cmd_ring = NULL;

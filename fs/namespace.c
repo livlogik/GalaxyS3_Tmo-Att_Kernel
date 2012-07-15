@@ -1244,8 +1244,9 @@ void umount_tree(struct vfsmount *mnt, int propagate, struct list_head *kill)
 		list_del_init(&p->mnt_expire);
 		list_del_init(&p->mnt_list);
 		__touch_mnt_namespace(p->mnt_ns);
+		if (p->mnt_ns)
+			__mnt_make_shortterm(p);
 		p->mnt_ns = NULL;
-		__mnt_make_shortterm(p);
 		list_del_init(&p->mnt_child);
 		if (p->mnt_parent != p) {
 			p->mnt_parent->mnt_ghosts++;
@@ -2731,6 +2732,11 @@ struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
 	return mnt;
 }
 EXPORT_SYMBOL_GPL(kern_mount_data);
+ 
+bool our_mnt(struct vfsmount *mnt)
+{
+        return check_mnt(mnt);
+}
 
 void kern_unmount(struct vfsmount *mnt)
 {
@@ -2741,8 +2747,3 @@ void kern_unmount(struct vfsmount *mnt)
 	}
 }
 EXPORT_SYMBOL(kern_unmount);
-
-bool our_mnt(struct vfsmount *mnt)
-{
-	return check_mnt(mnt);
-}

@@ -47,11 +47,11 @@ static void resume_irqs(bool want_early)
 
 	for_each_irq_desc_reverse(irq, desc) {
 		unsigned long flags;
-		bool is_early = desc->action &&
-			desc->action->flags & IRQF_EARLY_RESUME;
-
-		if (is_early != want_early)
-			continue;
+                bool is_early = desc->action &&
+                        desc->action->flags & IRQF_EARLY_RESUME;
+ 
+                if (is_early != want_early)
+                        continue;
 
 		raw_spin_lock_irqsave(&desc->lock, flags);
 		__enable_irq(desc, irq, true);
@@ -66,17 +66,17 @@ static void resume_irqs(bool want_early)
  */
 static void irq_pm_syscore_resume(void)
 {
-	resume_irqs(true);
+        resume_irqs(true);
 }
 
 static struct syscore_ops irq_pm_syscore_ops = {
-	.resume		= irq_pm_syscore_resume,
+        .resume         = irq_pm_syscore_resume,
 };
 
 static int __init irq_pm_init_ops(void)
 {
-	register_syscore_ops(&irq_pm_syscore_ops);
-	return 0;
+        register_syscore_ops(&irq_pm_syscore_ops);
+        return 0;
 }
 
 device_initcall(irq_pm_init_ops);
@@ -90,7 +90,7 @@ device_initcall(irq_pm_init_ops);
  */
 void resume_device_irqs(void)
 {
-	resume_irqs(false);
+        resume_irqs(false);
 }
 EXPORT_SYMBOL_GPL(resume_device_irqs);
 
