@@ -61,11 +61,7 @@ static ssize_t show_power(struct device *dev,
 				  REG_TDP_RUNNING_AVERAGE, &val);
 	running_avg_capture = (val >> 4) & 0x3fffff;
 	running_avg_capture = sign_extend32(running_avg_capture, 21);
-<<<<<<< HEAD
-	running_avg_range = val & 0xf;
-=======
 	running_avg_range = (val & 0xf) + 1;
->>>>>>> c3406d1... Linux 3.0.36 update
 
 	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
 				  REG_TDP_LIMIT3, &val);

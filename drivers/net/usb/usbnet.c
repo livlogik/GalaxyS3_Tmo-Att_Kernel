@@ -1060,12 +1060,7 @@ static void tx_complete (struct urb *urb)
 	}
 
 	usb_autopm_put_interface_async(dev->intf);
-<<<<<<< HEAD
-	entry->state = tx_done;
-	defer_bh(dev, skb, &dev->txq);
-=======
 	(void) defer_bh(dev, skb, &dev->txq, tx_done);
->>>>>>> c3406d1... Linux 3.0.36 update
 }
 
 /*-------------------------------------------------------------------------*/

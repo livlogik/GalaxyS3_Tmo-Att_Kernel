@@ -2856,8 +2856,6 @@ static void __devinit disable_igfx_irq(struct pci_dev *dev)
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0102, disable_igfx_irq);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_irq);
 
-<<<<<<< HEAD
-=======
 /*
  * The Intel 6 Series/C200 Series chipset's EHCI controllers on many
  * ASUS motherboards will cause memory corruption or a system crash
@@ -2884,7 +2882,6 @@ static void __devinit asus_ehci_no_d3(struct pci_dev *dev)
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c26, asus_ehci_no_d3);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c2d, asus_ehci_no_d3);
 
->>>>>>> c3406d1... Linux 3.0.36 update
 static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
 			  struct pci_fixup *end)
 {

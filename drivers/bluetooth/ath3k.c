@@ -64,26 +64,16 @@ static struct usb_device_id ath3k_table[] = {
 	{ USB_DEVICE(0x0CF3, 0x3002) },
 	{ USB_DEVICE(0x13d3, 0x3304) },
 	{ USB_DEVICE(0x0930, 0x0215) },
-<<<<<<< HEAD
-	{ USB_DEVICE(0x0489, 0xE03D) },
-=======
-        { USB_DEVICE(0x0489, 0xE03D) },
->>>>>>> c3406d1... Linux 3.0.36 update
+    { USB_DEVICE(0x0489, 0xE03D) },
 
 	/* Atheros AR9285 Malbec with sflash firmware */
 	{ USB_DEVICE(0x03F0, 0x311D) },
 
 	/* Atheros AR3012 with sflash firmware*/
 	{ USB_DEVICE(0x0CF3, 0x3004) },
-<<<<<<< HEAD
-	{ USB_DEVICE(0x0CF3, 0x311D) },
-	{ USB_DEVICE(0x13d3, 0x3375) },
-	{ USB_DEVICE(0x04CA, 0x3005) },
-=======
-        { USB_DEVICE(0x0CF3, 0x311D) },
-        { USB_DEVICE(0x13d3, 0x3375) },
-        { USB_DEVICE(0x04CA, 0x3005) },
->>>>>>> c3406d1... Linux 3.0.36 update
+    { USB_DEVICE(0x0CF3, 0x311D) },
+    { USB_DEVICE(0x13d3, 0x3375) },
+    { USB_DEVICE(0x04CA, 0x3005) },
 
 	/* Atheros AR5BBU12 with sflash firmware */
 	{ USB_DEVICE(0x0489, 0xE02C) },
@@ -106,12 +96,9 @@ static struct usb_device_id ath3k_blist_tbl[] = {
 	{ USB_DEVICE(0x0cf3, 0x311D), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x13d3, 0x3375), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x04ca, 0x3005), .driver_info = BTUSB_ATH3012 },
-<<<<<<< HEAD
-=======
 
 	/* Atheros AR5BBU22 with sflash firmware */
 	{ USB_DEVICE(0x0489, 0xE03C), .driver_info = BTUSB_ATH3012 },
->>>>>>> c3406d1... Linux 3.0.36 update
 
 	{ }	/* Terminating entry */
 };
