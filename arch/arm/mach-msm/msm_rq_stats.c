@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -11,7 +11,7 @@
  *
  */
 /*
- * Qualcomm MSM Runqueue Stats Interface for Userspace
+ * Qualcomm MSM Runqueue Stats and cpu utilization Interface for Userspace
  */
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -26,6 +26,9 @@
 #include <linux/sched.h>
 #include <linux/spinlock.h>
 #include <linux/rq_stats.h>
+#include <linux/cpufreq.h>
+#include <linux/kernel_stat.h>
+#include <linux/tick.h>
 
 #ifdef CONFIG_SEC_DVFS_DUAL
 #include <linux/cpufreq.h>
@@ -326,7 +329,7 @@ void dual_boost(unsigned int boost_on)
 }
 #endif
 
-static ssize_t show_run_queue_avg(struct kobject *kobj,
+static ssize_t run_queue_avg_show(struct kobject *kobj,
 		struct kobj_attribute *attr, char *buf)
 {
 	unsigned int val = 0;
@@ -345,6 +348,8 @@ static ssize_t show_run_queue_avg(struct kobject *kobj,
 
 	return snprintf(buf, PAGE_SIZE, "%d.%d\n", val/10, val%10);
 }
+
+static struct kobj_attribute run_queue_avg_attr = __ATTR_RO(run_queue_avg);
 
 static ssize_t show_run_queue_poll_ms(struct kobject *kobj,
 				      struct kobj_attribute *attr, char *buf)
@@ -380,6 +385,10 @@ static ssize_t store_run_queue_poll_ms(struct kobject *kobj,
 	return count;
 }
 
+static struct kobj_attribute run_queue_poll_ms_attr =
+	__ATTR(run_queue_poll_ms, S_IWUSR | S_IRUSR, show_run_queue_poll_ms,
+			store_run_queue_poll_ms);
+
 static ssize_t show_def_timer_ms(struct kobject *kobj,
 		struct kobj_attribute *attr, char *buf)
 {
@@ -398,67 +407,44 @@ static ssize_t store_def_timer_ms(struct kobject *kobj,
 	return count;
 }
 
-#define MSM_RQ_STATS_RO_ATTRIB(att) ({ \
-		struct attribute *attrib = NULL; \
-		struct kobj_attribute *ptr = NULL; \
-		ptr = kzalloc(sizeof(struct kobj_attribute), GFP_KERNEL); \
-		if (ptr) { \
-			ptr->attr.name = #att; \
-			ptr->attr.mode = S_IRUGO; \
-			ptr->show = show_##att; \
-			ptr->store = NULL; \
-			attrib = &ptr->attr; \
-		} \
-		attrib; })
+static struct kobj_attribute def_timer_ms_attr =
+	__ATTR(def_timer_ms, S_IWUSR | S_IRUSR, show_def_timer_ms,
+			store_def_timer_ms);
 
-#define MSM_RQ_STATS_RW_ATTRIB(att) ({ \
-		struct attribute *attrib = NULL; \
-		struct kobj_attribute *ptr = NULL; \
-		ptr = kzalloc(sizeof(struct kobj_attribute), GFP_KERNEL); \
-		if (ptr) { \
-			ptr->attr.name = #att; \
-			ptr->attr.mode = S_IWUSR|S_IRUSR; \
-			ptr->show = show_##att; \
-			ptr->store = store_##att; \
-			attrib = &ptr->attr; \
-		} \
-		attrib; })
+static ssize_t show_cpu_normalized_load(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return snprintf(buf, MAX_LONG_SIZE, "%u\n", report_load_at_max_freq());
+}
+
+static struct kobj_attribute cpu_normalized_load_attr =
+	__ATTR(cpu_normalized_load, S_IWUSR | S_IRUSR, show_cpu_normalized_load,
+			NULL);
+
+static struct attribute *rq_attrs[] = {
+	&cpu_normalized_load_attr.attr,
+	&def_timer_ms_attr.attr,
+	&run_queue_avg_attr.attr,
+	&run_queue_poll_ms_attr.attr,
+	NULL,
+};
+
+static struct attribute_group rq_attr_group = {
+	.attrs = rq_attrs,
+};
 
 static int init_rq_attribs(void)
 {
-	int i;
-	int err = 0;
-	const int attr_count = 4;
-
-	struct attribute **attribs =
-		kzalloc(sizeof(struct attribute *) * attr_count, GFP_KERNEL);
-
-	if (!attribs)
-		goto rel;
+	int err;
 
 	rq_info.rq_avg = 0;
-
-	attribs[0] = MSM_RQ_STATS_RW_ATTRIB(def_timer_ms);
-	attribs[1] = MSM_RQ_STATS_RO_ATTRIB(run_queue_avg);
-	attribs[2] = MSM_RQ_STATS_RW_ATTRIB(run_queue_poll_ms);
-	attribs[3] = NULL;
-
-	for (i = 0; i < attr_count - 1 ; i++) {
-		if (!attribs[i])
-			goto rel2;
-	}
-
-	rq_info.attr_group = kzalloc(sizeof(struct attribute_group),
-						GFP_KERNEL);
-	if (!rq_info.attr_group)
-		goto rel3;
-	rq_info.attr_group->attrs = attribs;
+	rq_info.attr_group = &rq_attr_group;
 
 	/* Create /sys/devices/system/cpu/cpu0/rq-stats/... */
 	rq_info.kobj = kobject_create_and_add("rq-stats",
 			&get_cpu_sysdev(0)->kobj);
 	if (!rq_info.kobj)
-		goto rel3;
+		return -ENOMEM;
 
 	err = sysfs_create_group(rq_info.kobj, rq_info.attr_group);
 	if (err)
@@ -466,24 +452,14 @@ static int init_rq_attribs(void)
 	else
 		kobject_uevent(rq_info.kobj, KOBJ_ADD);
 
-	if (!err)
-		return err;
-
-rel3:
-		kfree(rq_info.attr_group);
-		kfree(rq_info.kobj);
-rel2:
-	for (i = 0; i < attr_count - 1; i++)
-			kfree(attribs[i]);
-rel:
-	kfree(attribs);
-
-	return -ENOMEM;
+	return err;
 }
 
 static int __init msm_rq_stats_init(void)
 {
 	int ret;
+	int i;
+	struct cpufreq_policy cpu_policy;
 
 	rq_wq = create_singlethread_workqueue("rq_stats");
 	BUG_ON(!rq_wq);
@@ -500,6 +476,20 @@ static int __init msm_rq_stats_init(void)
 	ret = init_rq_attribs();
 
 	rq_info.init = 1;
+
+	for_each_possible_cpu(i) {
+		struct cpu_load_data *pcpu = &per_cpu(cpuload, i);
+		mutex_init(&pcpu->cpu_load_mutex);
+		cpufreq_get_policy(&cpu_policy, i);
+		pcpu->policy_max = cpu_policy.cpuinfo.max_freq;
+		cpumask_copy(pcpu->related_cpus, cpu_policy.cpus);
+	}
+	freq_transition.notifier_call = cpufreq_transition_handler;
+	cpu_hotplug.notifier_call = cpu_hotplug_handler;
+	cpufreq_register_notifier(&freq_transition,
+					CPUFREQ_TRANSITION_NOTIFIER);
+	register_hotcpu_notifier(&cpu_hotplug);
+
 	return ret;
 }
 late_initcall(msm_rq_stats_init);
