@@ -772,15 +772,12 @@ static ssize_t show_protocols(struct device *device,
 	if (dev->driver_type == RC_DRIVER_SCANCODE) {
 		enabled = dev->rc_map.rc_type;
 		allowed = dev->allowed_protos;
-	} else {
+	} else if (dev->raw) { 
 		enabled = dev->raw->enabled_protocols;
 		allowed = ir_raw_get_allowed_protocols();
-<<<<<<< HEAD
-=======
 	} else {
 		mutex_unlock(&dev->lock);
 		return -ENODEV;
->>>>>>> 5d94030... Linux 3.0.68
 	}
 
 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
