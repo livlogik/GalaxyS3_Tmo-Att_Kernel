@@ -1,6 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 0
-SUBLEVEL = 70
+SUBLEVEL = 71
 EXTRAVERSION =-DeviantKernel_07
 NAME = Sneaky Weasel
 
